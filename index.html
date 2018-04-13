@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>ブロック崩し</title>
+      <style>
+        * { padding: 0; margin 0: }
+        <!-- キャンバスの背景色を黒、大きさを640x480に -->
+        canvas { background: #000000; display: block; margin: 0 auto; }
+      </style>
+  </head>
+  <body>
+    <!-- キャンバス -->
+    <canvas id="gameCanvas" width="640" height="480" />
+    <script>
+      // JavaScript
+      const CANVAS_WIDTH = 640;
+      const CANVAS_HEIGHT = 480;
+      const LEFT_KEY = 37;
+      const RIGHT_KEY = 39;
+
+      // 自機クラス
+      class MyBlock {
+        // コンストラクタ(初期化)
+        constructor(x, y) {
+          // 位置
+          this._x = x;
+          this._y = y;
+          // 大きさ
+          this._width = 100;
+          this._height = 20;
+        }
+
+        // 描画
+        draw(ctx) {
+          ctx.beginPath();
+          ctx.rect(this._x, this._y, this._width, this._height);
+          ctx.fillStyle = "#0000FF";
+          ctx.fill();
+          ctx.closePath();
+        }
+
+        // 次のフレームの計算
+        nextFrame(keys) {
+          // ←キーが押されているか
+          if (keys.indexOf(LEFT_KEY) >= 0) {
+            this._x = this._x - 10;
+          }
+          // →キーが押されているか
+          if (keys.indexOf(RIGHT_KEY) >= 0) {
+            this._x = this._x + 10;
+          }
+        }
+      }
+      // ボールクラス
+      class Ball {
+        // コンストラクタ(初期化)
+        constructor(x, y) {
+          // 位置
+          this._x = x;
+          this._y = y;
+          // 半径
+          this._radius = 10;
+          // 移動量
+          this._dx = 1;
+          this._dy = 2;
+        }
+
+        // 描画
+        draw(ctx) {
+          ctx.beginPath();
+          ctx.arc(this._x, this._y, this._radius, 0, Math.PI * 2);
+          ctx.fillStyle = "#00FF00";
+          ctx.fill();
+          ctx.closePath();
+        }
+        
+        // 次のフレームの計算
+        nextFrame(keys) {
+          // 移動
+          this._x = this._x + this._dx;
+          this._y = this._y + this._dy;
+          // 当たり判定(もっと正確に!!)
+          if (this._x < 0 + this._radius || this._x > CANVAS_WIDTH - this._radius) {
+            this._dx = -this._dx;
+          }
+          if (this._y < 0 + this._radius || this._y > CANVAS_HEIGHT - this._radius) {
+            this._dy = -this._dy;
+          }
+        }
+      }
+
+      // 自機とボールの作成
+      const myBlock = new MyBlock(CANVAS_WIDTH / 2, CANVAS_HEIGHT - 50);
+      const ball = new Ball(100, 100);
+      // キャンバスの取得
+      const canvas = document.getElementById("gameCanvas");
+      // 描画コンテキストの取得
+      const ctx = canvas.getContext("2d");
+
+      // 描画関数
+      const draw = (ctx, canvas, keys) => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        myBlock.draw(ctx);
+        ball.draw(ctx);
+        myBlock.nextFrame(keys);
+        ball.nextFrame(keys);
+      }
+      // 押されているキー
+      const keys = [];
+      const keyDown = (e) => {
+        const key = e.keyCode;
+        // 既に押されていたら削除
+        let index = keys.indexOf(key);
+        if (index >= 0) {
+          keys.splice(index, 1);
+        }
+        // 押されているキーを追加
+        keys.push(key);
+      }
+      const keyUp = (e) => {
+        const key = e.keyCode;
+        // 押されているキーを削除
+        let index = keys.indexOf(key);
+        if (index >= 0) {
+          keys.splice(index, 1);
+        }
+      }
+      // キーボードハンドラの登録
+      document.addEventListener("keydown", keyDown, false);
+      document.addEventListener("keyup", keyUp, false);
+      // ゲームループ(10msごと)
+      setInterval(() => draw(ctx, canvas, keys), 10);
+    </script>
+  </body>
+</html>
+
+
